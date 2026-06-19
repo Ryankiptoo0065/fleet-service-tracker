@@ -1,7 +1,9 @@
 // src/routes/vehicles.js
+// Every vehicle belongs to the user who created it (owner_id).
+// All queries are scoped to req.user.id so each user only ever sees their own fleet.
 const express = require('express');
 const { pool } = require('../db/database');
-const { authenticate, requireAdmin } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 router.use(authenticate);
@@ -21,7 +23,10 @@ function withServiceStatus(vehicle) {
 router.get('/', async (req, res, next) => {
   try {
     const { status, due } = req.query;
-    const result = await pool.query('SELECT * FROM vehicles ORDER BY plate_number');
+    const result = await pool.query(
+      'SELECT * FROM vehicles WHERE owner_id = $1 ORDER BY plate_number',
+      [req.user.id]
+    );
     let rows = result.rows.map(withServiceStatus);
 
     if (status) rows = rows.filter((v) => v.status === status);
@@ -35,7 +40,10 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
   try {
-    const vResult = await pool.query('SELECT * FROM vehicles WHERE id = $1', [req.params.id]);
+    const vResult = await pool.query(
+      'SELECT * FROM vehicles WHERE id = $1 AND owner_id = $2',
+      [req.params.id, req.user.id]
+    );
     const vehicle = vResult.rows[0];
     if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
 
@@ -67,7 +75,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-router.post('/', requireAdmin, async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
     const {
       plate_number,
@@ -85,10 +93,11 @@ router.post('/', requireAdmin, async (req, res, next) => {
 
     const result = await pool.query(
       `INSERT INTO vehicles
-       (plate_number, make, model, year, assigned_driver_id, current_odometer_km, last_service_odometer_km, service_interval_km)
-       VALUES ($1, $2, $3, $4, $5, $6, $6, $7)
+       (owner_id, plate_number, make, model, year, assigned_driver_id, current_odometer_km, last_service_odometer_km, service_interval_km)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $8)
        RETURNING *`,
       [
+        req.user.id,
         plate_number,
         make || null,
         model || null,
@@ -102,15 +111,18 @@ router.post('/', requireAdmin, async (req, res, next) => {
     res.status(201).json(withServiceStatus(result.rows[0]));
   } catch (err) {
     if (err.code === '23505') {
-      return res.status(409).json({ error: 'A vehicle with that plate number already exists' });
+      return res.status(409).json({ error: 'You already have a vehicle with that plate number' });
     }
     next(err);
   }
 });
 
-router.put('/:id', requireAdmin, async (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
   try {
-    const existing = await pool.query('SELECT * FROM vehicles WHERE id = $1', [req.params.id]);
+    const existing = await pool.query(
+      'SELECT * FROM vehicles WHERE id = $1 AND owner_id = $2',
+      [req.params.id, req.user.id]
+    );
     if (!existing.rows[0]) return res.status(404).json({ error: 'Vehicle not found' });
 
     const fields = [
@@ -136,9 +148,9 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
       return res.status(400).json({ error: 'No valid fields provided to update' });
     }
 
-    values.push(req.params.id);
+    values.push(req.params.id, req.user.id);
     const result = await pool.query(
-      `UPDATE vehicles SET ${updates.join(', ')} WHERE id = $${i} RETURNING *`,
+      `UPDATE vehicles SET ${updates.join(', ')} WHERE id = $${i} AND owner_id = $${i + 1} RETURNING *`,
       values
     );
 
@@ -148,9 +160,12 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
   }
 });
 
-router.delete('/:id', requireAdmin, async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
-    const result = await pool.query('DELETE FROM vehicles WHERE id = $1', [req.params.id]);
+    const result = await pool.query(
+      'DELETE FROM vehicles WHERE id = $1 AND owner_id = $2',
+      [req.params.id, req.user.id]
+    );
     if (result.rowCount === 0) return res.status(404).json({ error: 'Vehicle not found' });
     res.status(204).send();
   } catch (err) {
@@ -161,7 +176,10 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
 router.post('/:id/odometer', async (req, res, next) => {
   try {
     const { reading_km, note } = req.body;
-    const vResult = await pool.query('SELECT * FROM vehicles WHERE id = $1', [req.params.id]);
+    const vResult = await pool.query(
+      'SELECT * FROM vehicles WHERE id = $1 AND owner_id = $2',
+      [req.params.id, req.user.id]
+    );
     const vehicle = vResult.rows[0];
     if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
 
@@ -180,8 +198,8 @@ router.post('/:id/odometer', async (req, res, next) => {
     );
 
     const updated = await pool.query(
-      'UPDATE vehicles SET current_odometer_km = $1 WHERE id = $2 RETURNING *',
-      [reading_km, req.params.id]
+      'UPDATE vehicles SET current_odometer_km = $1 WHERE id = $2 AND owner_id = $3 RETURNING *',
+      [reading_km, req.params.id, req.user.id]
     );
 
     res.status(201).json(withServiceStatus(updated.rows[0]));
@@ -193,7 +211,10 @@ router.post('/:id/odometer', async (req, res, next) => {
 router.post('/:id/service', async (req, res, next) => {
   try {
     const { odometer_km, service_type, description, cost, garage_name, service_date } = req.body;
-    const vResult = await pool.query('SELECT * FROM vehicles WHERE id = $1', [req.params.id]);
+    const vResult = await pool.query(
+      'SELECT * FROM vehicles WHERE id = $1 AND owner_id = $2',
+      [req.params.id, req.user.id]
+    );
     const vehicle = vResult.rows[0];
     if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
 
@@ -222,9 +243,9 @@ router.post('/:id/service', async (req, res, next) => {
       `UPDATE vehicles
        SET last_service_odometer_km = $1,
            current_odometer_km = GREATEST(current_odometer_km, $1)
-       WHERE id = $2
+       WHERE id = $2 AND owner_id = $3
        RETURNING *`,
-      [odo, req.params.id]
+      [odo, req.params.id, req.user.id]
     );
 
     res.status(201).json(withServiceStatus(updated.rows[0]));

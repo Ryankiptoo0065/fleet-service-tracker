@@ -23,7 +23,8 @@ async function initSchema() {
 
     CREATE TABLE IF NOT EXISTS vehicles (
       id SERIAL PRIMARY KEY,
-      plate_number TEXT UNIQUE NOT NULL,
+      owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      plate_number TEXT NOT NULL,
       make TEXT,
       model TEXT,
       year INTEGER,
@@ -32,7 +33,8 @@ async function initSchema() {
       last_service_odometer_km REAL NOT NULL DEFAULT 0,
       service_interval_km REAL NOT NULL DEFAULT 5000,
       status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'in_service', 'retired')),
-      created_at TIMESTAMP DEFAULT NOW()
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE (owner_id, plate_number)
     );
 
     CREATE TABLE IF NOT EXISTS odometer_logs (
@@ -59,6 +61,18 @@ async function initSchema() {
 
     CREATE INDEX IF NOT EXISTS idx_odometer_logs_vehicle ON odometer_logs(vehicle_id);
     CREATE INDEX IF NOT EXISTS idx_service_records_vehicle ON service_records(vehicle_id);
+    CREATE INDEX IF NOT EXISTS idx_vehicles_owner ON vehicles(owner_id);
+
+    -- Migration safety: add owner_id to existing vehicles table if it doesn't exist yet
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='vehicles' AND column_name='owner_id'
+      ) THEN
+        ALTER TABLE vehicles ADD COLUMN owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
+      END IF;
+    END $$;
   `);
 }
 

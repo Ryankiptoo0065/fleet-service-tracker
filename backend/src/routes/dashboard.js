@@ -8,7 +8,7 @@ router.use(authenticate);
 
 router.get('/summary', async (req, res, next) => {
   try {
-    const result = await pool.query('SELECT * FROM vehicles');
+    const result = await pool.query('SELECT * FROM vehicles WHERE owner_id = $1', [req.user.id]);
     const vehicles = result.rows;
 
     let dueCount = 0;
@@ -26,8 +26,18 @@ router.get('/summary', async (req, res, next) => {
       }
     }
 
-    const countResult = await pool.query('SELECT COUNT(*) AS c FROM service_records');
-    const costResult = await pool.query('SELECT SUM(cost) AS total FROM service_records');
+    const countResult = await pool.query(
+      `SELECT COUNT(*) AS c FROM service_records sr
+       JOIN vehicles v ON v.id = sr.vehicle_id
+       WHERE v.owner_id = $1`,
+      [req.user.id]
+    );
+    const costResult = await pool.query(
+      `SELECT SUM(sr.cost) AS total FROM service_records sr
+       JOIN vehicles v ON v.id = sr.vehicle_id
+       WHERE v.owner_id = $1`,
+      [req.user.id]
+    );
 
     res.json({
       total_vehicles: vehicles.length,

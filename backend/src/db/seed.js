@@ -1,61 +1,49 @@
 // src/db/seed.js
-require("dotenv").config();
-const bcrypt = require("bcryptjs");
-const { pool, ready } = require("./database");
+require('dotenv').config();
+const bcrypt = require('bcryptjs');
+const { pool, ready } = require('./database');
 
 async function seed() {
   await ready;
-  console.log("Seeding database...");
+  console.log('Seeding database...');
 
-  const adminPass = bcrypt.hashSync("admin123", 10);
-  const driverPass = bcrypt.hashSync("driver123", 10);
+  const adminPass = bcrypt.hashSync('admin123', 10);
+  const driverPass = bcrypt.hashSync('driver123', 10);
 
   await pool.query(
     `INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4)
      ON CONFLICT (email) DO NOTHING`,
-    ["Fleet Admin", "admin@example.com", adminPass, "admin"],
+    ['Fleet Admin', 'admin@example.com', adminPass, 'admin']
   );
   await pool.query(
     `INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4)
      ON CONFLICT (email) DO NOTHING`,
-    ["John Driver", "john@example.com", driverPass, "driver"],
-  );
-  await pool.query(
-    `INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4)
-     ON CONFLICT (email) DO NOTHING`,
-    ["Mary Driver", "mary@example.com", driverPass, "driver"],
+    ['John Driver', 'john@example.com', driverPass, 'driver']
   );
 
-  const john = (
-    await pool.query("SELECT id FROM users WHERE email = $1", [
-      "john@example.com",
-    ])
-  ).rows[0];
-  const mary = (
-    await pool.query("SELECT id FROM users WHERE email = $1", [
-      "mary@example.com",
-    ])
-  ).rows[0];
+  const admin = (await pool.query('SELECT id FROM users WHERE email = $1', ['admin@example.com'])).rows[0];
 
+  // Demo vehicles belong to the admin account only.
+  // New users who register will start with zero vehicles, by design.
   await pool.query(
-    `INSERT INTO vehicles (plate_number, make, model, year, assigned_driver_id, current_odometer_km, last_service_odometer_km, service_interval_km)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (plate_number) DO NOTHING`,
-    ["KDA 123A", "Toyota", "Hiace", 2019, john.id, 48500, 45000, 5000],
+    `INSERT INTO vehicles (owner_id, plate_number, make, model, year, current_odometer_km, last_service_odometer_km, service_interval_km)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (owner_id, plate_number) DO NOTHING`,
+    [admin.id, 'KDA 123A', 'Toyota', 'Hiace', 2019, 48500, 45000, 5000]
   );
   await pool.query(
-    `INSERT INTO vehicles (plate_number, make, model, year, assigned_driver_id, current_odometer_km, last_service_odometer_km, service_interval_km)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (plate_number) DO NOTHING`,
-    ["KDB 456B", "Isuzu", "NQR", 2021, mary.id, 32000, 30000, 8000],
+    `INSERT INTO vehicles (owner_id, plate_number, make, model, year, current_odometer_km, last_service_odometer_km, service_interval_km)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (owner_id, plate_number) DO NOTHING`,
+    [admin.id, 'KDB 456B', 'Isuzu', 'NQR', 2021, 32000, 30000, 8000]
   );
   await pool.query(
-    `INSERT INTO vehicles (plate_number, make, model, year, assigned_driver_id, current_odometer_km, last_service_odometer_km, service_interval_km)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (plate_number) DO NOTHING`,
-    ["KDC 789C", "Toyota", "Hilux", 2020, null, 61000, 60500, 6000],
+    `INSERT INTO vehicles (owner_id, plate_number, make, model, year, current_odometer_km, last_service_odometer_km, service_interval_km)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (owner_id, plate_number) DO NOTHING`,
+    [admin.id, 'KDC 789C', 'Toyota', 'Hilux', 2020, 61000, 60500, 6000]
   );
 
-  console.log("Seed complete.");
-  console.log("Login as admin: admin@example.com / admin123");
-  console.log("Login as driver: john@example.com / driver123");
+  console.log('Seed complete.');
+  console.log('Admin (has 3 demo vehicles): admin@example.com / admin123');
+  console.log('Driver (starts with 0 vehicles): john@example.com / driver123');
   process.exit(0);
 }
 
