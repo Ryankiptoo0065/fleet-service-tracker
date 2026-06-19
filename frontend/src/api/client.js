@@ -1,8 +1,9 @@
 // src/api/client.js
-// All API calls go through here. Token is read from localStorage each time,
-// so no need to reinitialize after login.
+// All API calls go through here. Token is read from localStorage each time.
 
-const BASE = '/api';
+// In production, set VITE_API_URL to your deployed backend URL (e.g. https://your-app.onrender.com/api)
+// In local dev, leave it unset — Vite's proxy (vite.config.js) forwards /api to localhost:4000
+const BASE = import.meta.env.VITE_API_URL || '/api';
 
 function getToken() {
   return localStorage.getItem('fleet_token');
@@ -27,15 +28,12 @@ async function request(method, path, body) {
 }
 
 export const api = {
-  // Auth
   login: (email, password) => request('POST', '/auth/login', { email, password }),
   register: (name, email, password, role) =>
     request('POST', '/auth/register', { name, email, password, role }),
 
-  // Dashboard
   summary: () => request('GET', '/dashboard/summary'),
 
-  // Vehicles
   getVehicles: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return request('GET', `/vehicles${qs ? '?' + qs : ''}`);
