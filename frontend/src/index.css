@@ -1,0 +1,613 @@
+/* src/index.css — Design system
+   Palette:
+   --ink:        #1C1B19  (near-black, warm not blue-grey)
+   --paper:      #F7F4EC  (warm off-white, like a workshop logbook page)
+   --steel:      #6B6862  (muted neutral for secondary text/borders)
+   --signal:     #E8542A  (safety-orange — the "needs attention" accent, used sparingly)
+   --go:         #2F6B4F  (workshop green — good/serviced status)
+   --line:       #DDD7C7  (hairline borders, warm not grey)
+
+   Type:
+   Display: Space Grotesk (mechanical, geometric — instrument-panel feel)
+   Body: Inter (clean, legible at small sizes for drivers in the field)
+   Data: JetBrains Mono (odometer readings, dates — fixed-width so digits align)
+*/
+
+:root {
+  --ink: #1c1b19;
+  --paper: #f7f4ec;
+  --steel: #6b6862;
+  --signal: #e8542a;
+  --signal-dim: #fbe4da;
+  --go: #2f6b4f;
+  --go-dim: #e1ece5;
+  --line: #ddd7c7;
+  --white: #ffffff;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ---------- Layout shell ---------- */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+}
+
+.sidebar-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.sidebar-brand span {
+  color: var(--signal);
+}
+
+.sidebar-tagline {
+  font-size: 0.72rem;
+  color: #97948c;
+  margin-bottom: 32px;
+  letter-spacing: 0.02em;
+}
+
+.nav-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #d8d5cb;
+  text-decoration: none;
+  margin-bottom: 2px;
+  transition: background 0.15s ease;
+}
+
+.nav-link:hover {
+  background: #2a2926;
+}
+
+.nav-link.active {
+  background: var(--signal);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  font-size: 0.8rem;
+  color: #97948c;
+}
+
+.sidebar-footer button {
+  background: none;
+  border: 1px solid #45433e;
+  color: #d8d5cb;
+  padding: 8px 12px;
+  border-radius: 6px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.sidebar-footer button:hover {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.main-content {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 1100px;
+}
+
+/* ---------- Typography ---------- */
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-header p {
+  color: var(--steel);
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ---------- Cards / stats ---------- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.stat-card .label {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--steel);
+  font-weight: 600;
+}
+
+.stat-card .value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.stat-card.alert .value {
+  color: var(--signal);
+}
+
+/* ---------- Tables ---------- */
+
+.table-wrap {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--steel);
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr.clickable {
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+tr.clickable:hover {
+  background: #fbfaf6;
+}
+
+/* ---------- Status badges ---------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.badge-due {
+  background: var(--signal-dim);
+  color: var(--signal);
+}
+
+.badge-soon {
+  background: #fff3e0;
+  color: #b5712b;
+}
+
+.badge-ok {
+  background: var(--go-dim);
+  color: var(--go);
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ---------- Buttons / forms ---------- */
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 10px 18px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.05s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn-primary:hover {
+  opacity: 0.88;
+}
+
+.btn-signal {
+  background: var(--signal);
+  color: var(--white);
+}
+
+.btn-signal:hover {
+  opacity: 0.9;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.btn-ghost:hover {
+  border-color: var(--steel);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  background: var(--white);
+  color: var(--ink);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: 2px solid var(--signal);
+  outline-offset: -1px;
+  border-color: var(--signal);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.error-text {
+  color: var(--signal);
+  font-size: 0.85rem;
+  margin-top: -4px;
+  margin-bottom: 14px;
+}
+
+.helper-text {
+  color: var(--steel);
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
+
+/* ---------- Auth screen ---------- */
+
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  padding: 20px;
+}
+
+.auth-card {
+  background: var(--paper);
+  border-radius: 14px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.auth-brand {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.auth-brand span {
+  color: var(--signal);
+}
+
+.auth-sub {
+  color: var(--steel);
+  font-size: 0.88rem;
+  margin-bottom: 28px;
+}
+
+.auth-toggle {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: 18px;
+  color: var(--steel);
+}
+
+.auth-toggle button {
+  background: none;
+  border: none;
+  color: var(--signal);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+}
+
+.demo-hint {
+  background: #efece0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: var(--steel);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ---------- Detail page ---------- */
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.progress-bar-track {
+  height: 8px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.panel h2 {
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  color: var(--steel);
+  font-size: 0.88rem;
+  padding: 16px 0;
+  text-align: center;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 27, 25, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 28px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.modal-card h2 {
+  margin-bottom: 18px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.toolbar-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--steel);
+}
+
+.chip.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 14px 16px;
+  }
+  .sidebar-brand,
+  .sidebar-tagline,
+  .sidebar-footer {
+    display: none;
+  }
+  .nav-link {
+    margin-bottom: 0;
+  }
+  .main-content {
+    padding: 20px;
+  }
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
