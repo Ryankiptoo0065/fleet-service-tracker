@@ -79,6 +79,7 @@ function ServiceModal({ vehicle, onClose, onSaved }) {
     odometer_km: String(Math.ceil(vehicle.current_odometer_km)),
     cost: '',
     garage_name: '',
+    technician_name: '',
     service_date: new Date().toISOString().split('T')[0],
   });
   const [error, setError] = useState('');
@@ -172,6 +173,14 @@ function ServiceModal({ vehicle, onClose, onSaved }) {
               value={form.garage_name}
               onChange={(e) => set('garage_name', e.target.value)}
               placeholder="e.g. Nairobi Auto Centre"
+            />
+          </div>
+          <div className="field">
+            <label>Technician name</label>
+            <input
+              value={form.technician_name}
+              onChange={(e) => set('technician_name', e.target.value)}
+              placeholder="e.g. John Mwangi"
             />
           </div>
           <div className="field">
@@ -355,6 +364,11 @@ export function VehicleDetailPage() {
                     {sr.garage_name && (
                       <div style={{ color: 'var(--steel)', fontSize: '0.82rem' }}>
                         @ {sr.garage_name}
+                      </div>
+                    )}
+                    {sr.technician_name && (
+                      <div style={{ color: 'var(--steel)', fontSize: '0.82rem' }}>
+                        Mechanic: {sr.technician_name}
                       </div>
                     )}
                   </div>

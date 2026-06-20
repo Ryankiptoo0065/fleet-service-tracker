@@ -53,6 +53,7 @@ async function initSchema() {
       description TEXT,
       cost REAL,
       garage_name TEXT,
+      technician_name TEXT,
       serviced_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       service_date TIMESTAMP DEFAULT NOW(),
       created_at TIMESTAMP DEFAULT NOW()
@@ -72,7 +73,7 @@ async function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_reset_tokens_token ON password_reset_tokens(token);
   `);
 
-  // Step 2: migration-safe column addition (runs BEFORE anything tries to use owner_id)
+  // Step 2: migration-safe column additions (run BEFORE anything tries to use these columns)
   await pool.query(`
     DO $$
     BEGIN
@@ -81,6 +82,13 @@ async function initSchema() {
         WHERE table_name='vehicles' AND column_name='owner_id'
       ) THEN
         ALTER TABLE vehicles ADD COLUMN owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='service_records' AND column_name='technician_name'
+      ) THEN
+        ALTER TABLE service_records ADD COLUMN technician_name TEXT;
       END IF;
     END $$;
   `);

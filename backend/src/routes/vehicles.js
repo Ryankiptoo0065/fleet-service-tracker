@@ -210,7 +210,7 @@ router.post('/:id/odometer', async (req, res, next) => {
 
 router.post('/:id/service', async (req, res, next) => {
   try {
-    const { odometer_km, service_type, description, cost, garage_name, service_date } = req.body;
+    const { odometer_km, service_type, description, cost, garage_name, technician_name, service_date } = req.body;
     const vResult = await pool.query(
       'SELECT * FROM vehicles WHERE id = $1 AND owner_id = $2',
       [req.params.id, req.user.id]
@@ -225,8 +225,8 @@ router.post('/:id/service', async (req, res, next) => {
 
     await pool.query(
       `INSERT INTO service_records
-       (vehicle_id, odometer_km, service_type, description, cost, garage_name, serviced_by_user_id, service_date)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, NOW()))`,
+       (vehicle_id, odometer_km, service_type, description, cost, garage_name, technician_name, serviced_by_user_id, service_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, NOW()))`,
       [
         req.params.id,
         odo,
@@ -234,6 +234,7 @@ router.post('/:id/service', async (req, res, next) => {
         description || null,
         cost || null,
         garage_name || null,
+        technician_name || null,
         req.user.id,
         service_date || null,
       ]
