@@ -2,12 +2,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { useAuth } from '../AuthContext';
 import { ServiceBadge } from '../components/ServiceBadge';
 import { AddVehicleModal } from '../components/AddVehicleModal';
 
 export function VehiclesPage() {
-  const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [filter, setFilter] = useState('all'); // 'all' | 'due' | 'active'
@@ -76,11 +74,9 @@ export function VehiclesPage() {
           />
         </div>
 
-        {isAdmin && (
-          <button className="btn btn-signal" onClick={() => setShowAdd(true)}>
-            + Add vehicle
-          </button>
-        )}
+        <button className="btn btn-signal" onClick={() => setShowAdd(true)}>
+          + Add vehicle
+        </button>
       </div>
 
       <div className="table-wrap">

@@ -11,6 +11,7 @@ const pool = new Pool({
 });
 
 async function initSchema() {
+  // Step 1: create base tables if they don't exist yet (fresh installs)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -23,7 +24,6 @@ async function initSchema() {
 
     CREATE TABLE IF NOT EXISTS vehicles (
       id SERIAL PRIMARY KEY,
-      owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       plate_number TEXT NOT NULL,
       make TEXT,
       model TEXT,
@@ -33,8 +33,7 @@ async function initSchema() {
       last_service_odometer_km REAL NOT NULL DEFAULT 0,
       service_interval_km REAL NOT NULL DEFAULT 5000,
       status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'in_service', 'retired')),
-      created_at TIMESTAMP DEFAULT NOW(),
-      UNIQUE (owner_id, plate_number)
+      created_at TIMESTAMP DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS odometer_logs (
@@ -61,9 +60,10 @@ async function initSchema() {
 
     CREATE INDEX IF NOT EXISTS idx_odometer_logs_vehicle ON odometer_logs(vehicle_id);
     CREATE INDEX IF NOT EXISTS idx_service_records_vehicle ON service_records(vehicle_id);
-    CREATE INDEX IF NOT EXISTS idx_vehicles_owner ON vehicles(owner_id);
+  `);
 
-    -- Migration safety: add owner_id to existing vehicles table if it doesn't exist yet
+  // Step 2: migration-safe column addition (runs BEFORE anything tries to use owner_id)
+  await pool.query(`
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -73,6 +73,11 @@ async function initSchema() {
         ALTER TABLE vehicles ADD COLUMN owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
       END IF;
     END $$;
+  `);
+
+  // Step 3: now that owner_id definitely exists, safe to index it
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_vehicles_owner ON vehicles(owner_id);
   `);
 }
 
