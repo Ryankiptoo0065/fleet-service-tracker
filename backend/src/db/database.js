@@ -58,8 +58,18 @@ async function initSchema() {
       created_at TIMESTAMP DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token TEXT UNIQUE NOT NULL,
+      expires_at TIMESTAMP NOT NULL,
+      used BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_odometer_logs_vehicle ON odometer_logs(vehicle_id);
     CREATE INDEX IF NOT EXISTS idx_service_records_vehicle ON service_records(vehicle_id);
+    CREATE INDEX IF NOT EXISTS idx_reset_tokens_token ON password_reset_tokens(token);
   `);
 
   // Step 2: migration-safe column addition (runs BEFORE anything tries to use owner_id)

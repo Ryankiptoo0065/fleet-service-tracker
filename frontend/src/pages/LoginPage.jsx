@@ -1,15 +1,20 @@
 // src/pages/LoginPage.jsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '../api/client';
-import { useAuth } from '../AuthContext';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { api } from "../api/client";
+import { useAuth } from "../AuthContext";
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'driver' });
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState("login"); // 'login' | 'register'
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "driver",
+  });
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   function set(field, value) {
@@ -17,18 +22,27 @@ export function LoginPage() {
   }
 
   async function handleSubmit() {
-    setError('');
+    setError("");
     setLoading(true);
     try {
       let result;
-      if (mode === 'login') {
+      if (mode === "login") {
         result = await api.login(form.email, form.password);
       } else {
-        if (!form.name.trim()) { setError('Name is required'); setLoading(false); return; }
-        result = await api.register(form.name, form.email, form.password, form.role);
+        if (!form.name.trim()) {
+          setError("Name is required");
+          setLoading(false);
+          return;
+        }
+        result = await api.register(
+          form.name,
+          form.email,
+          form.password,
+          form.role,
+        );
       }
       login(result.user, result.token);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -37,7 +51,7 @@ export function LoginPage() {
   }
 
   function handleKey(e) {
-    if (e.key === 'Enter') handleSubmit();
+    if (e.key === "Enter") handleSubmit();
   }
 
   return (
@@ -47,10 +61,12 @@ export function LoginPage() {
           Fleet<span>Track</span>
         </div>
         <div className="auth-sub">
-          {mode === 'login' ? 'Sign in to manage your fleet' : 'Create a new account'}
+          {mode === "login"
+            ? "Sign in to manage your fleet"
+            : "Create a new account"}
         </div>
 
-        {mode === 'login' && (
+        {mode === "login" && (
           <div className="demo-hint">
             <strong>Demo credentials</strong>
             <br />
@@ -62,12 +78,12 @@ export function LoginPage() {
 
         {error && <div className="error-text">{error}</div>}
 
-        {mode === 'register' && (
+        {mode === "register" && (
           <div className="field">
             <label>Full name</label>
             <input
               value={form.name}
-              onChange={(e) => set('name', e.target.value)}
+              onChange={(e) => set("name", e.target.value)}
               placeholder="John Kamau"
               onKeyDown={handleKey}
             />
@@ -79,7 +95,7 @@ export function LoginPage() {
           <input
             type="email"
             value={form.email}
-            onChange={(e) => set('email', e.target.value)}
+            onChange={(e) => set("email", e.target.value)}
             placeholder="you@company.com"
             onKeyDown={handleKey}
           />
@@ -90,16 +106,33 @@ export function LoginPage() {
           <input
             type="password"
             value={form.password}
-            onChange={(e) => set('password', e.target.value)}
+            onChange={(e) => set("password", e.target.value)}
             placeholder="••••••••"
             onKeyDown={handleKey}
           />
+          {mode === "login" && (
+            <div style={{ textAlign: "right", marginTop: 6 }}>
+              <Link
+                to="/forgot-password"
+                style={{
+                  fontSize: "0.8rem",
+                  color: "var(--steel)",
+                  cursor: "pointer",
+                }}
+              >
+                Forgot password?
+              </Link>
+            </div>
+          )}
         </div>
 
-        {mode === 'register' && (
+        {mode === "register" && (
           <div className="field">
             <label>Role</label>
-            <select value={form.role} onChange={(e) => set('role', e.target.value)}>
+            <select
+              value={form.role}
+              onChange={(e) => set("role", e.target.value)}
+            >
               <option value="driver">Driver</option>
               <option value="admin">Fleet Admin</option>
             </select>
@@ -112,19 +145,37 @@ export function LoginPage() {
           disabled={loading}
           style={{ marginTop: 8 }}
         >
-          {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
+          {loading
+            ? "Please wait…"
+            : mode === "login"
+              ? "Sign in"
+              : "Create account"}
         </button>
 
         <div className="auth-toggle">
-          {mode === 'login' ? (
+          {mode === "login" ? (
             <>
-              No account?{' '}
-              <button onClick={() => { setMode('register'); setError(''); }}>Register here</button>
+              No account?{" "}
+              <button
+                onClick={() => {
+                  setMode("register");
+                  setError("");
+                }}
+              >
+                Register here
+              </button>
             </>
           ) : (
             <>
-              Already have an account?{' '}
-              <button onClick={() => { setMode('login'); setError(''); }}>Sign in</button>
+              Already have an account?{" "}
+              <button
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                }}
+              >
+                Sign in
+              </button>
             </>
           )}
         </div>

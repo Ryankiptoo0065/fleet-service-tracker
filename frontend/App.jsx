@@ -1,13 +1,13 @@
 // src/App.jsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./AuthContext";
-import { AppShell } from "./components/AppShell";
-import { LoginPage } from "./pages/LoginPage";
-import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
-import { ResetPasswordPage } from "./pages/ResetPasswordPage";
-import { DashboardPage } from "./pages/DashboardPage";
-import { VehiclesPage } from "./pages/VehiclesPage";
-import { VehicleDetailPage } from "./pages/VehicleDetailPage";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './AuthContext';
+import { AppShell } from './components/AppShell';
+import { LoginPage } from './pages/LoginPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { VehiclesPage } from './pages/VehiclesPage';
+import { VehicleDetailPage } from './pages/VehicleDetailPage';
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();

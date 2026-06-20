@@ -31,6 +31,8 @@ export const api = {
   login: (email, password) => request('POST', '/auth/login', { email, password }),
   register: (name, email, password, role) =>
     request('POST', '/auth/register', { name, email, password, role }),
+  forgotPassword: (email) => request('POST', '/auth/forgot-password', { email }),
+  resetPassword: (token, password) => request('POST', '/auth/reset-password', { token, password }),
 
   summary: () => request('GET', '/dashboard/summary'),
 
