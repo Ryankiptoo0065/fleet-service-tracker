@@ -206,6 +206,149 @@ function ServiceModal({ vehicle, onClose, onSaved }) {
   );
 }
 
+// ---- Edit vehicle modal ----
+function EditVehicleModal({ vehicle, onClose, onSaved, onDeleted }) {
+  const [form, setForm] = useState({
+    plate_number: vehicle.plate_number || '',
+    make: vehicle.make || '',
+    model: vehicle.model || '',
+    year: vehicle.year ? String(vehicle.year) : '',
+    service_interval_km: String(vehicle.service_interval_km || 5000),
+    status: vehicle.status || 'active',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  function set(field, value) {
+    setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  async function handleSave() {
+    if (!form.plate_number.trim()) {
+      setError('Plate number is required');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const updated = await api.updateVehicle(vehicle.id, {
+        ...form,
+        year: form.year ? parseInt(form.year) : undefined,
+        service_interval_km: parseFloat(form.service_interval_km) || 5000,
+      });
+      onSaved(updated);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm(`Delete ${vehicle.plate_number}? This permanently removes it and all its service history. This cannot be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.deleteVehicle(vehicle.id);
+      onDeleted();
+    } catch (err) {
+      setError(err.message);
+      setDeleting(false);
+    }
+  }
+
+  const STATUSES = [
+    { value: 'active', label: 'Active' },
+    { value: 'in_service', label: 'In Service' },
+    { value: 'retired', label: 'Retired' },
+  ];
+
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-card">
+        <h2>Edit vehicle</h2>
+
+        {error && <div className="error-text">{error}</div>}
+
+        <div className="field">
+          <label>Plate number *</label>
+          <input
+            value={form.plate_number}
+            onChange={(e) => set('plate_number', e.target.value.toUpperCase())}
+            style={{ fontFamily: 'var(--font-mono)' }}
+          />
+        </div>
+
+        <div className="field-row">
+          <div className="field">
+            <label>Make</label>
+            <input value={form.make} onChange={(e) => set('make', e.target.value)} />
+          </div>
+          <div className="field">
+            <label>Model</label>
+            <input value={form.model} onChange={(e) => set('model', e.target.value)} />
+          </div>
+        </div>
+
+        <div className="field-row">
+          <div className="field">
+            <label>Year</label>
+            <input
+              type="number"
+              value={form.year}
+              onChange={(e) => set('year', e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label>Service interval (km)</label>
+            <input
+              type="number"
+              value={form.service_interval_km}
+              onChange={(e) => set('service_interval_km', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="field">
+          <label>Status</label>
+          <select value={form.status} onChange={(e) => set('status', e.target.value)}>
+            {STATUSES.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="modal-actions">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-signal" onClick={handleSave} disabled={loading}>
+            {loading ? 'Saving…' : 'Save changes'}
+          </button>
+        </div>
+
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          style={{
+            width: '100%',
+            marginTop: 14,
+            background: 'none',
+            border: '1px solid var(--signal)',
+            color: 'var(--signal)',
+            borderRadius: 7,
+            padding: '10px 0',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          {deleting ? 'Deleting…' : '🗑 Delete this vehicle'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ---- Service progress bar ----
 function ServiceProgress({ vehicle }) {
   const pct = Math.min(
@@ -306,6 +449,9 @@ export function VehicleDetailPage() {
           <div style={{ color: 'var(--steel)', marginTop: 2 }}>{title}</div>
         </div>
         <div className="detail-actions">
+          <button className="btn btn-ghost" onClick={() => setModal('edit')}>
+            ✏️ Edit
+          </button>
           <button className="btn btn-ghost" onClick={() => setModal('odometer')}>
             📍 Log mileage
           </button>
@@ -455,6 +601,14 @@ export function VehicleDetailPage() {
           vehicle={vehicle}
           onClose={() => setModal(null)}
           onSaved={handleServiceSaved}
+        />
+      )}
+      {modal === 'edit' && (
+        <EditVehicleModal
+          vehicle={vehicle}
+          onClose={() => setModal(null)}
+          onSaved={() => { load(); setModal(null); }}
+          onDeleted={() => navigate('/vehicles')}
         />
       )}
     </>

@@ -42,6 +42,10 @@ export function AppShell({ children }) {
           </div>
           <button onClick={handleLogout}>Sign out</button>
         </div>
+
+        <button className="mobile-signout" onClick={handleLogout} aria-label="Sign out">
+          ⎋
+        </button>
       </nav>
 
       <main className="main-content">{children}</main>
